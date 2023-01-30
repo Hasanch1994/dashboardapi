@@ -4,6 +4,7 @@ const {
   updateBaseInfo,
   addNewSkill,
   deleteSkill,
+  updateSkill,
 } = require("../controller/actionController");
 const checkAuth = require("../middleware/auth");
 const { fileFilter, userProfileStorage } = require("../helper/uploadUtils");
@@ -36,4 +37,5 @@ router.post("/addNewSkill", addNewSkill);
 router.delete("/deleteSkill", deleteSkill);
 // update skill
 router.put("/updateSkill", updateSkill);
+
 module.exports = router;

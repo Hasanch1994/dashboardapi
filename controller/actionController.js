@@ -69,7 +69,7 @@ exports.updateBaseInfo = async (req, resp) => {
 exports.addNewSkill = async (req, resp) => {
   try {
     const { name, value } = req.body;
-
+    console.log(req.body);
     // connect to db
     await client.connect();
     await db
