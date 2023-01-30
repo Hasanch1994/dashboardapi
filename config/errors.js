@@ -4,4 +4,6 @@ module.exports = {
   invalidParams: "invalid params",
   fileDeleted: "file deleted successfully",
   updateSuccessfully: "update successfully",
+  insertSuccessfully: "insert successfully",
+  deleteSuccessfully: "delete successfully",
 };
