@@ -1,9 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const { loginOperator } = require("../controller/actionController");
+const { updateBaseInfo } = require("../controller/actionController");
+const checkAuth = require("../middleware/auth");
+const { fileFilter, userProfileStorage } = require("../helper/uploadUtils");
+const multer = require("multer");
 
-// update info includes name about image
-// router.put("/updateBaseInfo", loginOperator);
-// router.post("/logout");
+/* all methods checking auth at first
+    update info includes name about image
+*/
+
+router.post(
+  "/updateBaseInfo",
+  fileFilter,
+  multer({ storage: userProfileStorage }).single("Image"),
+  //   checkAuth,
+  updateBaseInfo
+);
 
 module.exports = router;

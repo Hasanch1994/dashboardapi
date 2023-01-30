@@ -2,7 +2,7 @@ const { eLog } = require("../helper/createLog");
 const { invalidParams } = require("../config/errors");
 const GenerateToken = require("../utils/generateToken");
 
-const { client, db } = require("../config/db");
+const { client, db, closeConnection } = require("../config/db");
 
 // method for login user and generate token
 exports.loginOperator = async (req, resp) => {
@@ -13,7 +13,9 @@ exports.loginOperator = async (req, resp) => {
     // get cookies from request
     const cookies = req.cookies;
     // check operator is exist
+
     await client.connect();
+
     await db
       .collection("operators")
       .find({ opName: userName, password: password })
@@ -85,10 +87,11 @@ exports.loginOperator = async (req, resp) => {
         }
       })
       .catch((err) => {
-        console.log("error", err);
+        eLog(err);
       })
       .finally(() => {
-        // client && client.close();
+        // close connection
+        closeConnection();
       });
   } catch (err) {
     eLog(err);

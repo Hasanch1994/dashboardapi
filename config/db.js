@@ -14,4 +14,5 @@ const db = () => client && client.db(dbName);
 module.exports = {
   client,
   db: db(),
+  closeConnection: () => client && client.close(),
 };

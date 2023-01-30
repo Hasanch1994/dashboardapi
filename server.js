@@ -7,7 +7,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const jwtAuth = require("./middleware/auth");
 const cookieParser = require("cookie-parser");
-app.use("/upload/files", express.static(process.cwd() + "/upload/profile"));
+app.use("/upload/profile", express.static(process.cwd() + "/upload/profile"));
 const credentials = require("./middleware/credentials");
 const corsOptions = require("./config/corsOptions");
 const path = require("path");
@@ -43,6 +43,10 @@ app.get("/", (req, resp) => {
 // create operator route
 const operatorRoute = require("./routes/operatorRoute");
 app.use("/user", operatorRoute);
+
+// create actions route
+const actionRoute = require("./routes/actionRoute");
+app.use("/action", actionRoute);
 
 const server = http.createServer(app);
 server.listen(process.env.PORT, () => {
