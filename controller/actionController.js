@@ -6,8 +6,17 @@ const { client, db } = require("../config/db");
 // method for login user and generate token
 exports.updateBaseInfo = async (req, resp) => {
   try {
-    const { name, about, title, links, education, languages, interests } =
-      req.body;
+    const {
+      name,
+      about,
+      title,
+      links,
+      education,
+      languages,
+      interests,
+      phoneNumber,
+      location,
+    } = req.body;
     // connect to db
     await client.connect();
 
@@ -24,6 +33,8 @@ exports.updateBaseInfo = async (req, resp) => {
             languages: languages,
             education: education,
             interests: interests,
+            phoneNumber: phoneNumber,
+            location: location,
           },
         }
       )
