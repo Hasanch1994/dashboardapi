@@ -29,21 +29,6 @@ app.get("/", (req, resp) => {
   });
 });
 
-const operatorRoute = require("./route/operatorRoute");
-const customerRoute = require("./route/customerRoute");
-const sysRoute = require("./route/sysRoute");
-const refreshRoute = require("./route/refreshRoute");
-const dealRoute = require("./route/dealRoute");
-
-app.use("/operator", operatorRoute);
-app.use("/customer", customerRoute);
-app.use("/sys", sysRoute);
-app.use("/refresh", refreshRoute);
-app.use("/deal", dealRoute);
-
-const uploadRoute = require("./route/upload");
-app.use("/upload", uploadRoute);
-
 app.all("*", (req, res) => {
   res.status(404);
   if (req.accepts("html")) {
