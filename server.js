@@ -29,20 +29,24 @@ app.get("/", (req, resp) => {
   });
 });
 
-app.all("*", (req, res) => {
-  res.status(404);
-  if (req.accepts("html")) {
-    res.sendFile(path.join(__dirname, "views", "404.html"));
-  } else if (req.accepts("json")) {
-    res.json({ error: "404 Not Found" });
-  } else {
-    res.type("txt").send("404 Not Found");
-  }
-});
+// app.all("*", (req, res) => {
+//   res.status(404);
+//   if (req.accepts("html")) {
+//     res.sendFile(path.join(__dirname, "views", "404.html"));
+//   } else if (req.accepts("json")) {
+//     res.json({ error: "404 Not Found" });
+//   } else {
+//     res.type("txt").send("404 Not Found");
+//   }
+// });
+
+// create operator route
+const operatorRoute = require("./routes/operatorRoute");
+app.use("/user", operatorRoute);
 
 const server = http.createServer(app);
 server.listen(process.env.PORT, () => {
-  console.log("server is running...");
+  console.log(`server is running on Port ${process.env.PORT}`);
 });
 
 module.exports = app;

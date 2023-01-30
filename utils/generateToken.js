@@ -17,7 +17,7 @@ const refreshTokenSignOptions = {
 module.exports = class GenerateToken {
   constructor() {}
 
-  accessToken = async (id, phone, name) => {
+  accessToken = async (id, name) => {
     const PRIVATE_KEY = fs.readFileSync("./files/accessToken/private.key");
     const ENCRYPT_KEY = process.env.ENCRYPT_KEY;
 
@@ -25,6 +25,7 @@ module.exports = class GenerateToken {
     // const encryptedPhone = CryptoJS.AES.encrypt(phone, ENCRYPT_KEY).toString();
 
     const accessPayload = {
+      userId: id,
       userName: name,
     };
 
@@ -36,7 +37,7 @@ module.exports = class GenerateToken {
     return accessToken;
   };
 
-  refreshToken = async (id, phone, name) => {
+  refreshToken = async (id) => {
     const PRIVATE_KEY = fs.readFileSync("./files/refreshToken/private.key");
     // const ENCRYPT_KEY = process.env.ENCRYPT_KEY;
     // const encryptedId = CryptoJS.AES.encrypt(id, ENCRYPT_KEY).toString();
