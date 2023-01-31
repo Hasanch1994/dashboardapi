@@ -5,9 +5,12 @@ require("dotenv").config();
 const helmet = require("helmet");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const jwtAuth = require("./middleware/auth");
 const cookieParser = require("cookie-parser");
 app.use("/upload/profile", express.static(process.cwd() + "/upload/profile"));
+app.use(
+  "/upload/portfolio",
+  express.static(process.cwd() + "/upload/portfolio")
+);
 const credentials = require("./middleware/credentials");
 const corsOptions = require("./config/corsOptions");
 const path = require("path");

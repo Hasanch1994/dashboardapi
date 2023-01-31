@@ -6,6 +6,9 @@ const {
   deleteSkill,
   updateSkill,
   getSkills,
+  getPortfolios,
+  deletePortfolio,
+  addPortfolio,
 } = require("../controller/actionController");
 const checkAuth = require("../middleware/auth");
 const { fileFilter, userProfileStorage } = require("../helper/uploadUtils");
@@ -40,5 +43,19 @@ router.post("/addNewSkill", addNewSkill);
 router.delete("/deleteSkill", deleteSkill);
 // update skill
 router.put("/updateSkill", updateSkill);
+
+/*
+  portfolio routes
+  contains add,delete and get for portfolio
+*/
+
+// add new portfolio with upload multipart images with max count 4
+router.post("/addPortfolio", fileFilter, addPortfolio);
+
+// get portfolio
+router.get("/portfolios", getPortfolios);
+
+// delete portfolio
+router.delete("/deletePortfolio", deletePortfolio);
 
 module.exports = router;

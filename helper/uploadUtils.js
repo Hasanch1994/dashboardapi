@@ -1,6 +1,7 @@
 const multer = require("multer");
 const fs = require("fs");
-var path = require("path");
+const { nanoid } = require("nanoid");
+
 const { fileDeleted } = require("../config/errors");
 const { eLog } = require("./createLog");
 
@@ -25,7 +26,7 @@ const deleteProfileImage = () => {
   var result = false;
   try {
     new Promise((resolve, reject) => {
-      fs.unlink(`./upload/profile/profile.jpg}`, (err) => {});
+      fs.unlink(`./upload/profile/profile.jpg`, (err) => {});
       if (index === array.length - 1) resolve();
     })
       .then(() => {
@@ -43,4 +44,30 @@ const deleteProfileImage = () => {
   return result;
 };
 
-module.exports = { deleteProfileImage, fileFilter, userProfileStorage };
+const portfolioStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, `./upload/portfolio/`);
+  },
+  filename: function (req, file, cb) {
+    cb(null, nanoid(9) + ".jpg");
+  },
+});
+
+const deletePortfolioImage = (imageURLS) => {
+  const names = imageURLS.map((item) => item.substring(item.length - 31));
+  try {
+    names.forEach(
+      (path) => fs.existsSync("." + path) && fs.unlinkSync("." + path)
+    );
+  } catch (err) {
+    eLog(err);
+  }
+};
+
+module.exports = {
+  deleteProfileImage,
+  fileFilter,
+  userProfileStorage,
+  deletePortfolioImage,
+  portfolioStorage,
+};

@@ -1,4 +1,5 @@
 const { eLog } = require("../helper/createLog");
+require("dotenv").config();
 const {
   updateSuccessfully,
   insertSuccessfully,
@@ -8,6 +9,14 @@ require("dotenv").config();
 
 const { client, db } = require("../config/db");
 const { ObjectID } = require("bson");
+const {
+  deletePortfolioImage,
+  portfolioStorage,
+} = require("../helper/uploadUtils");
+const multer = require("multer");
+const { query } = require("express");
+//config multer with multipart images with max count 4
+const upload = multer({ storage: portfolioStorage }).array("Image", 4);
 
 /*
   about routes
@@ -154,6 +163,109 @@ exports.updateSkill = async (req, resp) => {
       )
       .then(async () => {
         resp.status(200).send({ msg: updateSuccessfully });
+      })
+      .catch((err) => {
+        eLog(err);
+      });
+  } catch (err) {
+    eLog(err);
+  }
+};
+
+/*
+  portfolio routes
+  contains add,delete and get for portfolio
+*/
+
+// method for get all portfolio
+exports.getPortfolios = async (req, resp) => {
+  try {
+    // connect to db
+    await client.connect();
+    await db
+      .collection("portfolio")
+      .find({})
+      .toArray()
+      .then(async (result) => {
+        resp.status(200).send(result);
+      })
+      .catch((err) => {
+        eLog(err);
+      });
+  } catch (err) {
+    eLog(err);
+  }
+};
+
+// method for delete portfolio
+exports.deletePortfolio = async (req, resp) => {
+  try {
+    const { id } = req.body;
+
+    // connect to db
+    await client.connect();
+
+    // first fetch names of portfolio images for delete from the storage
+    const imageNames = await db
+      .collection("portfolio")
+      .find({ _id: ObjectID(id) })
+      .toArray();
+
+    const imageURLS = imageNames[0].imageUrls;
+
+    await db
+      .collection("portfolio")
+      .deleteOne({
+        _id: ObjectID(id),
+      })
+      .then(async () => {
+        //delete images from storage if urls founded
+        if (imageURLS && imageURLS.length > 0) {
+          deletePortfolioImage(imageURLS);
+          resp.status(200).send({ msg: deleteSuccessfully });
+        }
+      })
+      .catch((err) => {
+        eLog(err);
+      });
+  } catch (err) {
+    eLog(err);
+  }
+};
+
+// method for delete new skill with name and value
+exports.addPortfolio = async (req, resp) => {
+  try {
+    const { title, description, date } = req.body;
+    // connect to db
+    await client.connect();
+    await db
+      .collection("portfolio")
+      .insertOne({
+        title: title,
+        description: description,
+        date: date,
+      })
+      .then(async () => {
+        upload(req, resp, async (err) => {
+          if (err) throw err;
+          else {
+            //update collection imageURL fields with image links
+            const names = req.files.map(
+              (item) => process.env.IMAGEBASEURL + item.filename
+            );
+
+            const result = await db
+              .collection("portfolio")
+              .findOneAndUpdate(
+                {},
+                { $set: { imageUrls: names } },
+                { upsert: true, sort: { created: -1 } }
+              );
+
+            resp.status(201).send({ msg: insertSuccessfully });
+          }
+        });
       })
       .catch((err) => {
         eLog(err);
