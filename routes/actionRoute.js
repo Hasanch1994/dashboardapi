@@ -13,7 +13,7 @@ const {
   getExperiences,
   deleteExperience,
   updateExperience,
-} = require("../controller/actionController");
+} = require("../controllers/actionController");
 const checkAuth = require("../middleware/auth");
 const { fileFilter, userProfileStorage } = require("../helper/uploadUtils");
 const multer = require("multer");
