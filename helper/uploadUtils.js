@@ -1,10 +1,9 @@
 const multer = require("multer");
 const fs = require("fs");
 const { nanoid } = require("nanoid");
-
-const { fileDeleted } = require("../config/errors");
 const { eLog } = require("./createLog");
 
+// just png and jpeg images can upload in storage
 const fileFilter = (req, file, cb) => {
   if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
     cb(null, true);
@@ -12,7 +11,7 @@ const fileFilter = (req, file, cb) => {
     cb(null, false);
   }
 };
-
+// declare profile storage destination and fixed name
 const userProfileStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, `./upload/profile/`);
@@ -22,6 +21,7 @@ const userProfileStorage = multer.diskStorage({
   },
 });
 
+//delete profile image
 const deleteProfileImage = () => {
   var result = false;
   try {
@@ -44,6 +44,7 @@ const deleteProfileImage = () => {
   return result;
 };
 
+// declare portfolio storage destination and name that use nanoid with 9 length
 const portfolioStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, `./upload/portfolio/`);
@@ -53,6 +54,7 @@ const portfolioStorage = multer.diskStorage({
   },
 });
 
+//delete portfolio images with list of paths
 const deletePortfolioImage = (imageURLS) => {
   const names = imageURLS.map((item) => item.substring(item.length - 31));
   try {

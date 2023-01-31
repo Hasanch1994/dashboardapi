@@ -233,7 +233,7 @@ exports.deletePortfolio = async (req, resp) => {
   }
 };
 
-// method for delete new skill with name and value
+// method for add new skill with upload multipart images
 exports.addPortfolio = async (req, resp) => {
   try {
     const { title, description, date } = req.body;
