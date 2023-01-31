@@ -4,9 +4,9 @@ const {
   updateSuccessfully,
   insertSuccessfully,
   deleteSuccessfully,
-} = require("../config/errors");
+} = require("../helper/errors");
 require("dotenv").config();
-
+const { expDB, abDB, skDB, portDB } = require("../helper/collectionNames");
 const { client, db } = require("../config/db");
 const { ObjectID } = require("bson");
 const {
@@ -40,7 +40,7 @@ exports.updateBaseInfo = async (req, resp) => {
     await client.connect();
     const id = process.env.UID;
     await db
-      .collection("about")
+      .collection(abDB)
       .updateOne(
         { id: id },
         {
@@ -80,7 +80,7 @@ exports.getSkills = async (req, resp) => {
     // connect to db
     await client.connect();
     await db
-      .collection("skills")
+      .collection(skDB)
       .find({})
       .toArray()
       .then(async (result) => {
@@ -102,7 +102,7 @@ exports.addNewSkill = async (req, resp) => {
     // connect to db
     await client.connect();
     await db
-      .collection("skills")
+      .collection(skDB)
       .insertOne({
         name: name,
         value: value,
@@ -126,7 +126,7 @@ exports.deleteSkill = async (req, resp) => {
     // connect to db
     await client.connect();
     await db
-      .collection("skills")
+      .collection(skDB)
       .deleteOne({
         _id: ObjectID(id),
       })
@@ -149,7 +149,7 @@ exports.updateSkill = async (req, resp) => {
     // connect to db
     await client.connect();
     await db
-      .collection("skills")
+      .collection(skDB)
       .updateOne(
         {
           _id: ObjectID(id),
@@ -183,7 +183,7 @@ exports.getPortfolios = async (req, resp) => {
     // connect to db
     await client.connect();
     await db
-      .collection("portfolio")
+      .collection(portDB)
       .find({})
       .toArray()
       .then(async (result) => {
@@ -207,14 +207,14 @@ exports.deletePortfolio = async (req, resp) => {
 
     // first fetch names of portfolio images for delete from the storage
     const imageNames = await db
-      .collection("portfolio")
+      .collection(portDB)
       .find({ _id: ObjectID(id) })
       .toArray();
 
     const imageURLS = imageNames[0].imageUrls;
 
     await db
-      .collection("portfolio")
+      .collection(portDB)
       .deleteOne({
         _id: ObjectID(id),
       })
@@ -240,7 +240,7 @@ exports.addPortfolio = async (req, resp) => {
     // connect to db
     await client.connect();
     await db
-      .collection("portfolio")
+      .collection(portDB)
       .insertOne({
         title: title,
         description: description,
@@ -256,7 +256,7 @@ exports.addPortfolio = async (req, resp) => {
             );
 
             const result = await db
-              .collection("portfolio")
+              .collection(portDB)
               .findOneAndUpdate(
                 {},
                 { $set: { imageUrls: names } },
@@ -287,7 +287,7 @@ exports.addExperience = async (req, resp) => {
     // connect to db
     await client.connect();
     await db
-      .collection("experiences")
+      .collection(expDB)
       .insertOne({
         title: title,
         from: from,
@@ -312,7 +312,7 @@ exports.getExperiences = async (req, resp) => {
     // connect to db
     await client.connect();
     await db
-      .collection("experiences")
+      .collection(expDB)
       .find({})
       .toArray()
       .then(async (result) => {
@@ -335,7 +335,7 @@ exports.deleteExperience = async (req, resp) => {
     await client.connect();
 
     await db
-      .collection("experiences")
+      .collection(expDB)
       .deleteOne({
         _id: ObjectID(id),
       })
@@ -358,7 +358,7 @@ exports.updateExperience = async (req, resp) => {
     // connect to db
     await client.connect();
     await db
-      .collection("experiences")
+      .collection(expDB)
       .updateOne(
         {
           _id: ObjectID(id),

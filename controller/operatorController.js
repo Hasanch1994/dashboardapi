@@ -1,9 +1,9 @@
 const { eLog } = require("../helper/createLog");
-const { invalidParams } = require("../config/errors");
+const { invalidParams } = require("../helper/errors");
 const GenerateToken = require("../utils/generateToken");
 
 const { client, db, closeConnection } = require("../config/db");
-
+const { opDB } = require("../helper/collectionNames");
 // method for login user and generate token
 exports.loginOperator = async (req, resp) => {
   try {
@@ -17,7 +17,7 @@ exports.loginOperator = async (req, resp) => {
     await client.connect();
 
     await db
-      .collection("operators")
+      .collection(opDB)
       .find({ opName: userName, password: password })
       .toArray()
       .then(async (result) => {
@@ -41,7 +41,7 @@ exports.loginOperator = async (req, resp) => {
             const refreshToken = cookies.rToken;
 
             const foundToken = await db
-              .collection("operator")
+              .collection(opDB)
               .find({ refreshToken: refreshToken.refreshToken })
               .toArray();
 
@@ -60,7 +60,7 @@ exports.loginOperator = async (req, resp) => {
 
           // Saving refreshToken with current user
           await db
-            .collection("operators")
+            .collection(opDB)
             .updateOne(
               { _id: operator._id },
               { $set: { refreshToken: _refreshToken.refreshToken } }
