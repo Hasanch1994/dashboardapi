@@ -5,6 +5,7 @@ const {
   addNewSkill,
   deleteSkill,
   updateSkill,
+  getSkills,
 } = require("../controller/actionController");
 const checkAuth = require("../middleware/auth");
 const { fileFilter, userProfileStorage } = require("../helper/uploadUtils");
@@ -28,9 +29,11 @@ router.put(
 
 /*
   skill routes
-  contains add,delete and update for skills
+  contains add,delete,get and update for skills
 */
 
+// get skills
+router.get("/skills", getSkills);
 // add new skill
 router.post("/addNewSkill", addNewSkill);
 // delete skill

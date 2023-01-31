@@ -62,8 +62,28 @@ exports.updateBaseInfo = async (req, resp) => {
 
 /*
   skill controllers
-  contains add,delete and update for skills
+  contains add,delete,get and update for skills
 */
+
+// method for get all skills
+exports.getSkills = async (req, resp) => {
+  try {
+    // connect to db
+    await client.connect();
+    await db
+      .collection("skills")
+      .find({})
+      .toArray()
+      .then(async (result) => {
+        resp.status(200).send(result);
+      })
+      .catch((err) => {
+        eLog(err);
+      });
+  } catch (err) {
+    eLog(err);
+  }
+};
 
 // method for delete new skill with name and value
 exports.addNewSkill = async (req, resp) => {
