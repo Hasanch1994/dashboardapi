@@ -274,3 +274,112 @@ exports.addPortfolio = async (req, resp) => {
     eLog(err);
   }
 };
+
+/*
+  experiences routes
+  contains add,delete,update and get for experiences
+*/
+
+// method for add new experience
+exports.addExperience = async (req, resp) => {
+  try {
+    const { from, to, title, text } = req.body;
+    // connect to db
+    await client.connect();
+    await db
+      .collection("experiences")
+      .insertOne({
+        title: title,
+        from: from,
+        to: to,
+        text: text,
+        status: to ? false : true,
+      })
+      .then(async () => {
+        resp.status(201).send({ msg: insertSuccessfully });
+      })
+      .catch((err) => {
+        eLog(err);
+      });
+  } catch (err) {
+    eLog(err);
+  }
+};
+
+// method for get all experiences
+exports.getExperiences = async (req, resp) => {
+  try {
+    // connect to db
+    await client.connect();
+    await db
+      .collection("experiences")
+      .find({})
+      .toArray()
+      .then(async (result) => {
+        resp.status(200).send(result);
+      })
+      .catch((err) => {
+        eLog(err);
+      });
+  } catch (err) {
+    eLog(err);
+  }
+};
+
+// method for delete experience
+exports.deleteExperience = async (req, resp) => {
+  try {
+    const { id } = req.body;
+
+    // connect to db
+    await client.connect();
+
+    await db
+      .collection("experiences")
+      .deleteOne({
+        _id: ObjectID(id),
+      })
+      .then(async () => {
+        resp.status(200).send({ msg: deleteSuccessfully });
+      })
+      .catch((err) => {
+        eLog(err);
+      });
+  } catch (err) {
+    eLog(err);
+  }
+};
+
+// method for update experience
+exports.updateExperience = async (req, resp) => {
+  try {
+    const { id, title, from, to, text } = req.body;
+
+    // connect to db
+    await client.connect();
+    await db
+      .collection("experiences")
+      .updateOne(
+        {
+          _id: ObjectID(id),
+        },
+        {
+          $set: {
+            title: title,
+            from: from,
+            to: to,
+            text: text,
+            status: to ? false : true,
+          },
+        }
+      )
+      .then(async () => {
+        resp.status(200).send({ msg: updateSuccessfully });
+      })
+      .catch((err) => {
+        eLog(err);
+      });
+  } catch (err) {
+    eLog(err);
+  }
+};

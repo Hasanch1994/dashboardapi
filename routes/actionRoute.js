@@ -9,6 +9,10 @@ const {
   getPortfolios,
   deletePortfolio,
   addPortfolio,
+  addExperience,
+  getExperiences,
+  deleteExperience,
+  updateExperience,
 } = require("../controller/actionController");
 const checkAuth = require("../middleware/auth");
 const { fileFilter, userProfileStorage } = require("../helper/uploadUtils");
@@ -57,5 +61,19 @@ router.get("/portfolios", getPortfolios);
 
 // delete portfolio
 router.delete("/deletePortfolio", deletePortfolio);
+
+/*
+  experiences routes
+  contains add,delete,update and get for experiences
+*/
+
+// add new experience
+router.post("/addExperience", addExperience);
+// get experiences
+router.get("/getExperiences", getExperiences);
+// delete experience
+router.delete("/deleteExperience", deleteExperience);
+// update experience
+router.put("/updateExperience", updateExperience);
 
 module.exports = router;
