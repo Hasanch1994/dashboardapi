@@ -11,4 +11,6 @@ module.exports = {
   portDB: process.env.PORTDB,
   //skills collection
   skDB: process.env.SKDB,
+  // contact us collection
+  contactDB: process.env.CONTACT,
 };

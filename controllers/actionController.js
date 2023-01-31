@@ -6,7 +6,13 @@ const {
   deleteSuccessfully,
 } = require("../helper/errors");
 require("dotenv").config();
-const { expDB, abDB, skDB, portDB } = require("../helper/collectionNames");
+const {
+  expDB,
+  abDB,
+  skDB,
+  portDB,
+  contactDB,
+} = require("../helper/collectionNames");
 const { client, db } = require("../config/db");
 const { ObjectID } = require("bson");
 const {
@@ -173,7 +179,7 @@ exports.updateSkill = async (req, resp) => {
 };
 
 /*
-  portfolio routes
+  portfolio controllers
   contains add,delete and get for portfolio
 */
 
@@ -276,7 +282,7 @@ exports.addPortfolio = async (req, resp) => {
 };
 
 /*
-  experiences routes
+  experiences controllers
   contains add,delete,update and get for experiences
 */
 
@@ -375,6 +381,59 @@ exports.updateExperience = async (req, resp) => {
       )
       .then(async () => {
         resp.status(200).send({ msg: updateSuccessfully });
+      })
+      .catch((err) => {
+        eLog(err);
+      });
+  } catch (err) {
+    eLog(err);
+  }
+};
+
+/*
+  contact controllers
+    contains add and get for contact us
+
+*/
+
+// method for add new experience
+exports.addContact = async (req, resp) => {
+  try {
+    const { nameFamily, emailAddress, requestType, message } = req.body;
+    // connect to db
+    await client.connect();
+    await db
+      .collection(contactDB)
+      .insertOne({
+        nameFamily: nameFamily,
+        emailAddress: emailAddress,
+        requestType: requestType,
+        message: message,
+        date: Date.now(),
+        visited: false,
+      })
+      .then(async () => {
+        resp.status(201).send({ msg: insertSuccessfully });
+      })
+      .catch((err) => {
+        eLog(err);
+      });
+  } catch (err) {
+    eLog(err);
+  }
+};
+
+// method for get all contactUs
+exports.getContactUs = async (req, resp) => {
+  try {
+    // connect to db
+    await client.connect();
+    await db
+      .collection(contactDB)
+      .find({})
+      .toArray()
+      .then(async (result) => {
+        resp.status(200).send(result);
       })
       .catch((err) => {
         eLog(err);

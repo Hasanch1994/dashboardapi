@@ -13,6 +13,8 @@ const {
   getExperiences,
   deleteExperience,
   updateExperience,
+  addContact,
+  getContactUs,
 } = require("../controllers/actionController");
 const checkAuth = require("../middleware/auth");
 const { fileFilter, userProfileStorage } = require("../helper/uploadUtils");
@@ -76,4 +78,13 @@ router.delete("/deleteExperience", deleteExperience);
 // update experience
 router.put("/updateExperience", updateExperience);
 
+/*
+  contact route
+*/
+
+// add new contactUS
+router.post("/addNewContact", addContact);
+
+// get contactUS
+router.get("/getContacts", getContactUs);
 module.exports = router;
