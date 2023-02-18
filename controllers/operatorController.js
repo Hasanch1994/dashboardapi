@@ -4,6 +4,7 @@ const GenerateToken = require("../utils/generateToken");
 
 const { client, db, closeConnection } = require("../config/db");
 const { opDB } = require("../helper/collectionNames");
+const { ObjectID } = require("bson");
 // method for login user and generate token
 exports.loginOperator = async (req, resp) => {
   try {
@@ -15,7 +16,6 @@ exports.loginOperator = async (req, resp) => {
     // check operator is exist
 
     await client.connect();
-
     await db
       .collection(opDB)
       .find({ opName: userName, password: password })
@@ -33,11 +33,11 @@ exports.loginOperator = async (req, resp) => {
 
           const _refreshToken = await gToken.refreshToken(operator._id);
 
-          let newRefreshTokenArray = !cookies?.rToken
+          let newRefreshTokenArray = !cookies.rToken
             ? operator.refreshToken
             : _refreshToken;
 
-          if (cookies?.rToken) {
+          if (cookies.rToken) {
             const refreshToken = cookies.rToken;
 
             const foundToken = await db
@@ -83,7 +83,9 @@ exports.loginOperator = async (req, resp) => {
             },
           });
         } else {
-          resp.status(401);
+          resp
+            .status(200)
+            .send({ msg: "this userName and password is Not Exists" });
         }
       })
       .catch((err) => {
@@ -91,9 +93,53 @@ exports.loginOperator = async (req, resp) => {
       })
       .finally(() => {
         // close connection
-        closeConnection();
+        // closeConnection();
       });
   } catch (err) {
     eLog(err);
   }
+};
+
+// method for logout and clear token
+exports.handleLogout = async (req, res) => {
+  // On client, also delete the accessToken
+  const cookies = req.cookies;
+  if (!cookies?.rToken) return res.sendStatus(204); //No content
+  const refreshToken = cookies.rToken;
+
+  // Is refreshToken in db?
+
+  await client.connect();
+  const foundUser = await db
+    .collection("operators")
+    .find({ refreshToken: refreshToken })
+    .toArray();
+
+  if (!foundUser || foundUser.length === 0) {
+    res.clearCookie("rToken", {
+      httpOnly: true,
+      sameSite: "None",
+      secure: true,
+    });
+    return res.sendStatus(204);
+  }
+
+  const deFoundUser = foundUser[0];
+  // Delete refresh token in db
+
+  await db
+    .collection("operators")
+    .updateOne(
+      { _id: ObjectID(deFoundUser[0]._id) },
+      { $set: { refreshToken: "" } }
+    );
+
+  res.clearCookie("rToken", { httpOnly: true, sameSite: "None", secure: true });
+  // res.clearCookie("uId", { httpOnly: true, sameSite: "None", secure: true });
+  // res.clearCookie("isLogin", {
+  //   httpOnly: false,
+  //   sameSite: "None",
+  //   secure: true,
+  // });
+  res.sendStatus(204);
 };

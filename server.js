@@ -13,19 +13,18 @@ app.use(
 );
 const credentials = require("./middleware/credentials");
 const corsOptions = require("./config/corsOptions");
-const path = require("path");
 
+//urlencoded
+app.use(bodyParser.urlencoded({ extended: true }));
 //json body
 app.use(bodyParser.json());
-//urlencoded
-app.use(bodyParser.urlencoded({ extended: false }));
-
 app.use(credentials);
 
 app.use(cookieParser());
 //helmet
 app.use(helmet());
-app.use(cors(corsOptions));
+app.use(cors({ origin: true, credentials: true }));
+
 app.get("/", (req, resp) => {
   resp.status(200).send({
     msg: "welcome to api",

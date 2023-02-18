@@ -5,7 +5,7 @@ const CryptoJS = require("crypto-js");
 const { jwtKeys } = require("../files/keys");
 
 const accessTokenSignOptions = {
-  expiresIn: "1h",
+  expiresIn: "30d",
   algorithm: "RS256",
 };
 

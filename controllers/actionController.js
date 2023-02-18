@@ -1,9 +1,15 @@
 const { eLog } = require("../helper/createLog");
 require("dotenv").config();
+
+const jwt = require("jsonwebtoken");
+const fs = require("fs");
+const GenerateToken = require("../utils/generateToken");
+
 const {
   updateSuccessfully,
   insertSuccessfully,
   deleteSuccessfully,
+  insertFailed,
 } = require("../helper/errors");
 require("dotenv").config();
 const {
@@ -12,6 +18,7 @@ const {
   skDB,
   portDB,
   contactDB,
+  opDB,
 } = require("../helper/collectionNames");
 const { client, db } = require("../config/db");
 const { ObjectID } = require("bson");
@@ -21,8 +28,8 @@ const {
 } = require("../helper/uploadUtils");
 const multer = require("multer");
 const { query } = require("express");
-//config multer with multipart images with max count 4
-const upload = multer({ storage: portfolioStorage }).array("Image", 4);
+//config multer with multipart images with max count 8
+const upload = multer({ storage: portfolioStorage }).array("Images", 8);
 
 /*
   about routes
@@ -88,6 +95,7 @@ exports.getSkills = async (req, resp) => {
     await db
       .collection(skDB)
       .find({})
+      .sort({ _id: -1 })
       .toArray()
       .then(async (result) => {
         resp.status(200).send(result);
@@ -104,7 +112,6 @@ exports.getSkills = async (req, resp) => {
 exports.addNewSkill = async (req, resp) => {
   try {
     const { name, value } = req.body;
-    console.log(req.body);
     // connect to db
     await client.connect();
     await db
@@ -114,7 +121,14 @@ exports.addNewSkill = async (req, resp) => {
         value: value,
       })
       .then(async () => {
-        resp.status(201).send({ msg: insertSuccessfully });
+        // fetch inserted Id
+        const result = await db
+          .collection(skDB)
+          .find({})
+          .sort({ _id: -1 })
+          .limit(1)
+          .toArray();
+        resp.status(201).send({ msg: insertSuccessfully, _id: result[0]._id });
       })
       .catch((err) => {
         eLog(err);
@@ -127,7 +141,7 @@ exports.addNewSkill = async (req, resp) => {
 // method for delete skill
 exports.deleteSkill = async (req, resp) => {
   try {
-    const { id } = req.body;
+    const { id } = req.params;
 
     // connect to db
     await client.connect();
@@ -206,7 +220,7 @@ exports.getPortfolios = async (req, resp) => {
 // method for delete portfolio
 exports.deletePortfolio = async (req, resp) => {
   try {
-    const { id } = req.body;
+    const { id } = req.params;
 
     // connect to db
     await client.connect();
@@ -242,7 +256,7 @@ exports.deletePortfolio = async (req, resp) => {
 // method for add new skill with upload multipart images
 exports.addPortfolio = async (req, resp) => {
   try {
-    const { title, description, date } = req.body;
+    const { title, description, date, githubLink } = req.body;
     // connect to db
     await client.connect();
     await db
@@ -251,27 +265,41 @@ exports.addPortfolio = async (req, resp) => {
         title: title,
         description: description,
         date: date,
+        githubLink: githubLink,
       })
       .then(async () => {
-        upload(req, resp, async (err) => {
-          if (err) throw err;
-          else {
-            //update collection imageURL fields with image links
-            const names = req.files.map(
-              (item) => process.env.IMAGEBASEURL + item.filename
+        if (req.files) {
+          //update collection imageURL fields with image links
+          const names =
+            req.files &&
+            req.files.map((item) => process.env.IMAGEBASEURL + item.filename);
+
+          const result = await db
+            .collection(portDB)
+            .findOneAndUpdate(
+              {},
+              { $set: { imageUrls: names } },
+              { upsert: true, sort: { created: -1 } }
             );
 
-            const result = await db
-              .collection(portDB)
-              .findOneAndUpdate(
-                {},
-                { $set: { imageUrls: names } },
-                { upsert: true, sort: { created: -1 } }
-              );
-
+          if (result) {
             resp.status(201).send({ msg: insertSuccessfully });
           }
-        });
+        } else {
+          resp.status(201).send({ msg: insertSuccessfully });
+        }
+
+        // upload(req, resp, async (err) => {
+        //   console.log(req.files);
+        //   if (err) throw err;
+        //   else {
+
+        //       resp.status(201).send({ msg: insertSuccessfully });
+        //     } else {
+        //       resp.status(500).send({ msg: insertFailed });
+        //     }
+        //   }
+        // });
       })
       .catch((err) => {
         eLog(err);
@@ -425,12 +453,14 @@ exports.addContact = async (req, resp) => {
 
 // method for get all contactUs
 exports.getContactUs = async (req, resp) => {
+  console.log("in get ");
   try {
     // connect to db
     await client.connect();
     await db
       .collection(contactDB)
       .find({})
+      .sort({ date: -1 })
       .toArray()
       .then(async (result) => {
         resp.status(200).send(result);
@@ -441,4 +471,111 @@ exports.getContactUs = async (req, resp) => {
   } catch (err) {
     eLog(err);
   }
+};
+
+// method for get all contactUs
+exports.readContact = async (req, resp) => {
+  const { id } = req.params;
+  try {
+    // connect to db
+    await client.connect();
+    await db
+      .collection(contactDB)
+      .updateOne({ _id: ObjectID(id) }, { $set: { visited: true } })
+      .then(async (result) => {
+        resp.status(200).send({ msg: "updated" });
+      })
+      .catch((err) => {
+        eLog(err);
+      });
+  } catch (err) {
+    eLog(err);
+  }
+};
+
+/*
+  refresh Token
+*/
+
+exports.handleRefreshToken = async (req, res) => {
+  const cookies = req.cookies;
+  if (!cookies?.rToken) return res.sendStatus(401);
+  const refreshToken = cookies.rToken;
+  res.clearCookie("rToken", {
+    httpOnly: true,
+    sameSite: "None",
+    secure: true,
+  });
+
+  const PUBLIC_KEY = fs.readFileSync("./files/refreshToken/public.key");
+  let foundUser;
+
+  // connect to database
+  await client.connect();
+  foundUser = await db
+    .collection(opDB)
+    .find({ refreshToken: refreshToken })
+    .toArray()[0];
+
+  console.log(foundUser);
+
+  // Detected refresh token reuse!
+  if (!foundUser) {
+    jwt.verify(refreshToken, PUBLIC_KEY, async (err, decoded) => {
+      if (err) return res.sendStatus(403); //Forbidden
+
+      //remove token
+
+      await db
+        .collection(opDB)
+        .updateOne(
+          { _id: ObjectID(decoded.userId) },
+          { $set: { refreshToken: "" } }
+        );
+    });
+    return res.sendStatus(403); //Forbidden
+  }
+
+  const newRefreshTokenArray = foundUser.refreshToken;
+  // evaluate rToken
+
+  jwt.verify(refreshToken, PUBLIC_KEY, async (err, decoded) => {
+    if (err) {
+      await db
+        .collection(opDB)
+        .updateOne(
+          { _id: ObjectID(foundUser._id) },
+          { $set: { refreshToken: newRefreshTokenArray } }
+        );
+    }
+    if (err || foundUser.userId !== decoded.userId) return res.sendStatus(403);
+
+    const gToken = new GenerateToken();
+
+    const _accessToken = await gToken.accessToken(
+      foundUser._id,
+      foundUser.opName
+    );
+
+    const _refreshToken = await gToken.refreshToken(foundUser._id);
+
+    // Saving refreshToken with current user
+
+    await db
+      .collection(opDB)
+      .updateOne(
+        { _id: ObjectID(foundUser._id) },
+        { $set: { refreshToken: _refreshToken.refreshToken } }
+      );
+
+    // Creates Secure Cookie with refresh token
+    res.cookie("rToken", _refreshToken.refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+    });
+
+    res.json({ _accessToken });
+  });
 };

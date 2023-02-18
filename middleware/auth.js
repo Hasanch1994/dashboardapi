@@ -5,7 +5,11 @@ const fs = require("fs");
 module.exports = (req, res, next) => {
   try {
     const PUBLIC_KEY = fs.readFileSync("./files/accessToken/public.key");
-    const authHeader = req.headers.authorization || req.headers.Authorization;
+    const authHeader =
+      req.headers["x-access-token"] ||
+      req.headers.authorization ||
+      req.headers.Authorization;
+
     if (authHeader === undefined) res.sendStatus(401);
     const token = authHeader.split(" ")[1];
     if (!authHeader?.startsWith("Bearer ")) return res.sendStatus(401);

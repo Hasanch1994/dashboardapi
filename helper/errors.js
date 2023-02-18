@@ -5,5 +5,6 @@ module.exports = {
   fileDeleted: "file deleted successfully",
   updateSuccessfully: "update successfully",
   insertSuccessfully: "insert successfully",
+  insertFailed: "insert failed",
   deleteSuccessfully: "delete successfully",
 };
