@@ -257,6 +257,7 @@ exports.deletePortfolio = async (req, resp) => {
 exports.addPortfolio = async (req, resp) => {
   try {
     const { title, description, date, githubLink } = req.body;
+
     // connect to db
     await client.connect();
     await db
@@ -274,12 +275,16 @@ exports.addPortfolio = async (req, resp) => {
             req.files &&
             req.files.map((item) => process.env.IMAGEBASEURL + item.filename);
 
+          // get the last inserted record
+          const lastRecord = await db
+            .collection(portDB)
+            .findOne({}, { sort: { _id: -1 } });
+
           const result = await db
             .collection(portDB)
             .findOneAndUpdate(
-              {},
-              { $set: { imageUrls: names } },
-              { upsert: true, sort: { created: -1 } }
+              { _id: lastRecord._id },
+              { $set: { imageUrls: names } }
             );
 
           if (result) {
@@ -288,18 +293,6 @@ exports.addPortfolio = async (req, resp) => {
         } else {
           resp.status(201).send({ msg: insertSuccessfully });
         }
-
-        // upload(req, resp, async (err) => {
-        //   console.log(req.files);
-        //   if (err) throw err;
-        //   else {
-
-        //       resp.status(201).send({ msg: insertSuccessfully });
-        //     } else {
-        //       resp.status(500).send({ msg: insertFailed });
-        //     }
-        //   }
-        // });
       })
       .catch((err) => {
         eLog(err);
